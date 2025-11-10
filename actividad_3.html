@@ -4,15 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Actividad 3</title>
-
-    <!-- Bootstrap -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
     />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Librerías p5.js y ml5.js -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js"></script>
     <script src="https://unpkg.com/ml5@0.5.0/dist/ml5.min.js"></script>
 
@@ -22,77 +24,105 @@
       }
     </style>
   </head>
-
   <body>
-    <div class="container my-3">
-      <h2 class="mb-4">Identificador con Voz</h2>
+    <body>
+      <div class="container my-3">
+        <h2 class="mb-4">Identificador con Voz</h2>
 
-      <!-- Imágenes de ejemplo -->
-      <div class="row mb-5 text-center">
-        <div class="col-md-2 me-3"><img src="images/telefono.jpg" alt="" /></div>
-        <div class="col-md-2 me-3"><img src="images/botella.jpg" alt="" /></div>
-        <div class="col-md-2 me-3"><img src="images/mouse.jpg" alt="" /></div>
-        <div class="col-md-2 me-3"><img src="images/audifono.jpg" alt="" /></div>
-        <div class="col-md-2 me-3"><img src="images/puertoUSB.jpg" alt="" /></div>
-      </div>
+        <div class="row mb-5" style="text-align: center">
+          <div class="col-md-2 me-3">
+            <img src="images/telefono.jpg" alt="" />
+          </div>
 
-      <!-- Contenedor para el video -->
-      <div class="row">
-        <div class="col-md-6 mx-auto text-center" id="contenedor"></div>
+          <div class="col-md-2 me-3">
+            <img src="images/botella.jpg" alt="" />
+          </div>
+
+          <div class="col-md-2 me-3">
+            <img src="images/mouse.jpg" alt="" />
+          </div>
+
+          <div class="col-md-2 me-3">
+            <img src="images/audifono.jpg" alt="" />
+          </div>
+
+          <div class="col-md-2 me-3">
+            <img src="images/puertoUSB.jpg" alt="" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div
+            class="col-md-6 mx-auto"
+            id="contenedor"
+            style="text-align: center"
+          ></div>
+        </div>
       </div>
-    </div>
+    </body>
 
     <script type="text/javascript">
-      let classifier; // Modelo de clasificación
+      let classifier;
       let canvasVideo;
-      let imageModelURL = "./models/"; // Carpeta del modelo
+      // Model URL
+      let imageModelURL = "./models/";
+
+      // Video
       let video;
       let flippedVideo;
-      let label = ""; // Resultado del modelo
+      // To store the classification
+      let label = "";
 
-      // Carga del modelo
+      // Load the model first
       function preload() {
         classifier = ml5.imageClassifier(imageModelURL + "model.json");
       }
 
-      // Configuración inicial
       function setup() {
         canvasVideo = createCanvas(320, 260);
         canvasVideo.parent("contenedor");
 
+        // Create the video
         video = createCapture(VIDEO);
         video.size(320, 240);
         video.hide();
 
         flippedVideo = ml5.flipImage(video);
-        classifyVideo(); // Inicia clasificación
+        // Start classifying
+        classifyVideo();
       }
 
-      // Dibujo en el canvas
       function draw() {
         background(0);
+        // Draw the video
         image(flippedVideo, 0, 0);
+
+        // Draw the label
         fill(255);
         textSize(16);
         textAlign(CENTER);
         text(label, width / 2, height - 4);
       }
 
-      // Clasificación del video en tiempo real
+      // Get a prediction for the current video frame
       function classifyVideo() {
         flippedVideo = ml5.flipImage(video);
         classifier.classify(flippedVideo, gotResult);
         flippedVideo.remove();
       }
 
-      // Resultado del modelo
+      // When we get a result
       function gotResult(error, results) {
+        // If there is an error
         if (error) {
           console.error(error);
           return;
         }
-        label = results[0].label; // Guarda la etiqueta reconocida
-        classifyVideo(); // Vuelve a clasificar
+        // The results are in an array ordered by confidence.
+        // console.log(results[0]);
+        label = results[0].label;
+        // Classifiy again!
+        classifyVideo();
       }
     </script>
   </body>
