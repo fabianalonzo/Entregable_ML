@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actividad 1</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.10/p5.min.js"></script>
+    <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+
+    <style>
+      body {
+        background-color: #f0f0f0; /* Fondo gris claro */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container my-3">
+      <h2 class="mb-4">Identificador de Imágenes</h2>
+
+      <div class="row">
+        <!-- Contenedor donde se dibuja el canvas -->
+        <div
+          class="col-md-6 mx-auto"
+          id="contenedor"
+          style="text-align: center"
+        ></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 mt-3">
+          <div class="container mb-3">
+            <!-- Input para seleccionar una imagen -->
+            <input
+              class="form-control"
+              type="file"
+              name="imageInput"
+              id="imageInput"
+            />
+          </div>
+
+          <div class="col-md-12">
+            <!-- Aquí se mostrará el resultado del modelo -->
+            <strong id="resultado" class="text-center"></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let classifier; // Guarda el modelo de clasificación
+      let canvas;
+      let img;
+      let label = "";
+      let confidence = 0;
+
+      const input = document.getElementById("imageInput");
+      const resultado = document.getElementById("resultado");
+
+      // Carga el modelo antes de iniciar
+      function preload() {
+        classifier = ml5.imageClassifier("MobileNet");
+      }
+
+      // Se ejecuta una vez al inicio
+      function setup() {
+        canvas = createCanvas(400, 400); // Crea un canvas de 400x400
+        canvas.parent("contenedor"); // Lo agrega dentro del div "contenedor"
+
+        // Detecta cuando se selecciona una imagen
+        input.addEventListener("change", (event) => {
+          const file = event.target.files[0];
+          const reader = new FileReader();
+
+          // Cuando el archivo se carga, se muestra y clasifica
+          reader.onload = (e) => {
+            img = loadImage(e.target.result, () => {
+              image(img, 0, 0, width, height);
+              classifier.classify(img, gotResult); // Envía la imagen al modelo
+            });
+          };
+          reader.readAsDataURL(file); // Convierte el archivo en base64
+        });
+      }
+
+      // Se ejecuta continuamente para actualizar el canvas
+      function draw() {
+        background(220); // Fondo gris claro
+        if (img) {
+          image(img, 0, 0, 400, 400); // Dibuja la imagen si existe
+        }
+        fill(0);
+        textSize(16);
+        text(label, 10, 390); // Muestra la etiqueta en el canvas
+      }
+
+      // Convierte el valor de confianza a porcentaje
+      function getPorcentual(value) {
+        return nf(value * 100, 0, 2) + "%";
+      }
+
+      // Recibe los resultados del modelo y los muestra
+      function gotResult(results) {
+        if (results && results.length > 0) {
+          const result = results[0]; // Toma el mejor resultado
+          label = `Etiqueta: ${result.label} - Confianza: ${getPorcentual(
+            result.confidence
+          )}`;
+          resultado.innerText = label; // Lo muestra en pantalla
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actividad 2</title>
+
+    <!-- Bootstrap para estilos -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Librerías p5.js y ml5.js (para dibujar y reconocer el dibujo) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.10/p5.min.js"></script>
+    <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+
+    <style>
+      body {
+        background-color: #f0f0f0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container my-5">
+      <h2 class="mb-4">Login con Identificador de Imágenes</h2>
+
+      <!-- FORMULARIO DE LOGIN -->
+      <form action="" id="form-login" autocomplete="off">
+        <div class="card-body">
+          <!-- Usuario -->
+          <div class="mb-3">
+            <label for="usuario">Usuario</label>
+            <input class="form-control" type="text" id="usuario" required />
+          </div>
+
+          <!-- Contraseña -->
+          <div class="mb-3">
+            <label for="password">Contraseña</label>
+            <input class="form-control" type="password" id="password" required />
+          </div>
+
+          <!-- Área de dibujo -->
+          <div class="mb-3">
+            <label class="form-label">Código - CANVAS</label>
+            <div class="col-md-6 mx-auto" id="contenedor"></div>
+          </div>
+
+          <!-- Botones -->
+          <button type="submit" class="btn btn-primary w-10">Iniciar Sesión</button>
+          <button class="btn btn-danger w-10" onclick="clearCanvas()">Reiniciar Dibujo</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Lista de usuarios válidos con su "código" de dibujo esperado
+      const listaUsuarios = [
+        { nombre: "juanito", clave: "123456", codigo: "strawberry" },
+        { nombre: "pablito", clave: "abc12345", codigo: "chair" },
+        { nombre: "magaly", clave: "firulais1", codigo: "sun" },
+      ];
+
+      // Variables globales
+      let classifier; // Clasificador de dibujos (DoodleNet)
+      let canvas;
+      let resultsDiv;
+      let dibujo = ""; // Almacena la etiqueta del dibujo reconocido
+
+      // Carga del modelo antes de iniciar el sketch
+      function preload() {
+        classifier = ml5.imageClassifier("DoodleNet");
+      }
+
+      // Configuración inicial del canvas
+      function setup() {
+        canvas = createCanvas(480, 480);
+        canvas.parent("contenedor"); // Inserta el canvas dentro del div
+        background(255);
+
+        resultsDiv = createDiv("Calculando..."); // Muestra la predicción del dibujo
+
+        // Inicia la clasificación automática del dibujo
+        classifier.classifyStart(canvas, gotResult);
+
+        // Botón adicional para limpiar
+        clearButton = createButton("Reiniciar");
+        clearButton.mousePressed(clearCanvas);
+      }
+
+      // Función de dibujo: permite al usuario dibujar con el mouse
+      function draw() {
+        strokeWeight(24);
+        stroke(0);
+        if (mouseIsPressed) {
+          line(pmouseX, pmouseY, mouseX, mouseY);
+        }
+      }
+
+      // Recibe los resultados del clasificador
+      function gotResult(results) {
+        let label = results[0].label;
+        let confidence = results[0].confidence;
+        resultsDiv.html(label + " - " + confidence);
+        dibujo = label; // Guarda el nombre del dibujo detectado
+      }
+
+      // Limpia el canvas
+      function clearCanvas() {
+        background(255);
+        dibujo = "";
+      }
+
+      // Referencias del formulario
+      const formulario = document.querySelector("#form-login");
+      const usuario = document.querySelector("#usuario");
+      const password = document.querySelector("#password");
+
+      // Evento al enviar el formulario
+      formulario.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        // Recorremos la lista de usuarios
+        for (let i = 0; i < listaUsuarios.length; i++) {
+          if (listaUsuarios[i].nombre == usuario.value) {
+            // Verificación de contraseña y dibujo
+            if (listaUsuarios[i].clave == password.value) {
+              if (listaUsuarios[i].codigo == dibujo) {
+                alert("Bienvenido " + usuario.value + "!");
+                return;
+              } else {
+                alert("Código incorrecto.");
+                return;
+              }
+            } else {
+              alert("Contraseña incorrecta.");
+              return;
+            }
+          }
+        }
+        alert("Usuario no encontrado.");
+      });
+    </script>
+  </body>
+</html>
